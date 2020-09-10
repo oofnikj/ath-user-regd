@@ -12,26 +12,26 @@
  
  static bool dynamic_country_user_possible(struct ath_regulatory *reg)
  {
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return true;
 +
- 	if (IS_ENABLED(CPTCFG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
+ 	if (IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
  		return true;
  
 @@ -188,6 +192,8 @@ static bool dynamic_country_user_possibl
  
  static bool ath_reg_dyn_country_user_allow(struct ath_regulatory *reg)
  {
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return true;
- 	if (!IS_ENABLED(CPTCFG_ATH_REG_DYNAMIC_USER_REG_HINTS))
+ 	if (!IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_REG_HINTS))
  		return false;
  	if (!dynamic_country_user_possible(reg))
 @@ -345,6 +351,9 @@ ath_reg_apply_beaconing_flags(struct wip
  	struct ieee80211_channel *ch;
  	unsigned int i;
  
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return;
 +
  	for (band = 0; band < NUM_NL80211_BANDS; band++) {
@@ -41,7 +41,7 @@
  {
  	struct ieee80211_supported_band *sband;
  
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return;
 +
  	sband = wiphy->bands[NL80211_BAND_2GHZ];
@@ -51,7 +51,7 @@
  	struct ieee80211_channel *ch;
  	unsigned int i;
  
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return;
 +
  	if (!wiphy->bands[NL80211_BAND_5GHZ])
@@ -62,7 +62,7 @@
  
  	wiphy->reg_notifier = reg_notifier;
 +
-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
 +		return 0;
 +
  	wiphy->regulatory_flags |= REGULATORY_STRICT_REG |
@@ -70,23 +70,14 @@
  
 --- a/drivers/net/wireless/ath/Kconfig
 +++ b/drivers/net/wireless/ath/Kconfig
-@@ -24,6 +24,9 @@ config WLAN_VENDOR_ATH
+@@ -24,6 +24,10 @@ config WLAN_VENDOR_ATH
  
  if WLAN_VENDOR_ATH
  
 +config ATH_USER_REGD
 +	bool "Do not enforce EEPROM regulatory restrictions"
++	default y
 +
  config ATH_DEBUG
  	bool "Atheros wireless debugging"
  	help
---- a/local-symbols
-+++ b/local-symbols
-@@ -85,6 +85,7 @@ ADM8211=
- ATH_COMMON=
- WLAN_VENDOR_ATH=
- ATH_DEBUG=
-+ATH_USER_REGD=
- ATH_TRACEPOINTS=
- ATH_REG_DYNAMIC_USER_REG_HINTS=
- ATH_REG_DYNAMIC_USER_CERT_TESTING=
