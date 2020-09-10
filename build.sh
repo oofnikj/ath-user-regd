@@ -23,30 +23,32 @@ download_src() {
 		return 0
 	fi
 	_get_kernel_version
-	wget -qnc https://cdn.kernel.org/pub/linux/kernel/v${KMAJ}.x/linux-${KMAJ}.${KMIN}.${KREV}.tar.xz || true
-	mkdir -p $SRC_DIR
-	tar xf linux-${KMAJ}.${KMIN}.${KREV}.tar.xz --strip-components=1 -C $SRC_DIR
+	KERNEL_SRC=linux-${KMAJ}.${KMIN}.${KREV}.tar.xz
+	test -f src/$KERNEL_SRC || {
+		mkdir -p $SRC_DIR
+		wget -q https://cdn.kernel.org/pub/linux/kernel/v${KMAJ}.x/${KERNEL_SRC} -O src/${KERNEL_SRC}
+	}
+	tar xf src/${KERNEL_SRC} --strip-components=1 -C $SRC_DIR
 }
 
 prepare_patches() {
 	mkdir -p patches
 	for patch in "${PATCH_FILES[@]}"; do
 		wget -q "https://git.openwrt.org/?p=openwrt/openwrt.git;a=blob_plain;f=package/kernel/mac80211/patches/ath/${patch};hb=refs/heads/master" -O patches/${patch}
-		sed -i "s/CPTCFG/CONFIG/g" patches/${patch}
 	done
+	patch --strip 1 <patches/0001-patch-the-patches.patch
 }
 
 patch_src() {
 	for patch in "${PATCH_FILES[@]}"; do 
-		patch -d $SRC_DIR --strip 1 --unified --batch --verbose <"patches/$patch" || true
+		patch --directory $SRC_DIR --strip 1 <"patches/$patch"
 	done
 }
 
 build_modules() {
 	cp "${BUILD_DIR}/.config" "${SRC_DIR}/"
 	cp "${BUILD_DIR}/Module.symvers" "${SRC_DIR}/"
-	yes | make -C ${SRC_DIR} modules_prepare
-	# make -j"$(nproc)" -C "$SRC_DIR" $SUBDIR
+	make -C "${SRC_DIR}" olddefconfig
 	make -j"$(nproc)" -C "${BUILD_DIR}" M="${SRC_DIR}/${SUBDIR}"
 	make -C $SRC_DIR M="${SRC_DIR}/${SUBDIR}" KERNELRELEASE="$(uname -r)" INSTALL_MOD_PATH=build modules_install
 }
@@ -63,4 +65,6 @@ main() {
 	strip_debug
 }
 
-main
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

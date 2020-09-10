@@ -1,0 +1,127 @@
+From 1771696f0c63e8af2315b1e17f8fd2b7b9e63db7 Mon Sep 17 00:00:00 2001
+From: Jordan Sokolic <oofnik@gmail.com>
+Date: Thu, 10 Sep 2020 09:32:18 +0300
+Subject: [PATCH] patch the patches
+
+---
+ patches/402-ath_regd_optional.patch      | 29 ++++++++----------------
+ patches/406-ath_relax_default_regd.patch |  6 ++---
+ 2 files changed, 13 insertions(+), 22 deletions(-)
+
+diff --git a/patches/402-ath_regd_optional.patch b/patches/402-ath_regd_optional.patch
+index bf87d35..9aee59c 100644
+--- a/patches/402-ath_regd_optional.patch
++++ b/patches/402-ath_regd_optional.patch
+@@ -12,26 +12,26 @@
+  
+  static bool dynamic_country_user_possible(struct ath_regulatory *reg)
+  {
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return true;
+ +
+- 	if (IS_ENABLED(CPTCFG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
++ 	if (IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
+  		return true;
+  
+ @@ -188,6 +192,8 @@ static bool dynamic_country_user_possibl
+  
+  static bool ath_reg_dyn_country_user_allow(struct ath_regulatory *reg)
+  {
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return true;
+- 	if (!IS_ENABLED(CPTCFG_ATH_REG_DYNAMIC_USER_REG_HINTS))
++ 	if (!IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_REG_HINTS))
+  		return false;
+  	if (!dynamic_country_user_possible(reg))
+ @@ -345,6 +351,9 @@ ath_reg_apply_beaconing_flags(struct wip
+  	struct ieee80211_channel *ch;
+  	unsigned int i;
+  
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return;
+ +
+  	for (band = 0; band < NUM_NL80211_BANDS; band++) {
+@@ -41,7 +41,7 @@
+  {
+  	struct ieee80211_supported_band *sband;
+  
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return;
+ +
+  	sband = wiphy->bands[NL80211_BAND_2GHZ];
+@@ -51,7 +51,7 @@
+  	struct ieee80211_channel *ch;
+  	unsigned int i;
+  
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return;
+ +
+  	if (!wiphy->bands[NL80211_BAND_5GHZ])
+@@ -62,7 +62,7 @@
+  
+  	wiphy->reg_notifier = reg_notifier;
+ +
+-+	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
+++	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ +		return 0;
+ +
+  	wiphy->regulatory_flags |= REGULATORY_STRICT_REG |
+@@ -70,23 +70,14 @@
+  
+ --- a/drivers/net/wireless/ath/Kconfig
+ +++ b/drivers/net/wireless/ath/Kconfig
+-@@ -24,6 +24,9 @@ config WLAN_VENDOR_ATH
++@@ -24,6 +24,10 @@ config WLAN_VENDOR_ATH
+  
+  if WLAN_VENDOR_ATH
+  
+ +config ATH_USER_REGD
+ +	bool "Do not enforce EEPROM regulatory restrictions"
+++	default y
+ +
+  config ATH_DEBUG
+  	bool "Atheros wireless debugging"
+  	help
+---- a/local-symbols
+-+++ b/local-symbols
+-@@ -85,6 +85,7 @@ ADM8211=
+- ATH_COMMON=
+- WLAN_VENDOR_ATH=
+- ATH_DEBUG=
+-+ATH_USER_REGD=
+- ATH_TRACEPOINTS=
+- ATH_REG_DYNAMIC_USER_REG_HINTS=
+- ATH_REG_DYNAMIC_USER_CERT_TESTING=
+diff --git a/patches/406-ath_relax_default_regd.patch b/patches/406-ath_relax_default_regd.patch
+index 35b0f2b..13e0f23 100644
+--- a/patches/406-ath_relax_default_regd.patch
++++ b/patches/406-ath_relax_default_regd.patch
+@@ -16,9 +16,9 @@
+ +
+  static bool dynamic_country_user_possible(struct ath_regulatory *reg)
+  {
+- 	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++ 	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+ @@ -123,6 +133,9 @@ static bool dynamic_country_user_possibl
+- 	if (IS_ENABLED(CPTCFG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
++ 	if (IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
+  		return true;
+  
+ +	if (is_default_regd(reg))
+@@ -40,7 +40,7 @@
+  {
+  	return is_wwr_sku(ath_regd_get_eepromRD(reg));
+ @@ -658,6 +666,9 @@ ath_regd_init_wiphy(struct ath_regulator
+- 	if (IS_ENABLED(CPTCFG_ATH_USER_REGD))
++ 	if (IS_ENABLED(CONFIG_ATH_USER_REGD))
+  		return 0;
+  
+ +	if (is_default_regd(reg))
+-- 
+2.28.0
+
