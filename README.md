@@ -6,25 +6,30 @@ The [OpenWrt](https://openwrt.org/) project provides some patches to the Linux k
 
 DISCLAIMER
 ---
-**I accept no responsibility regarding the legality of using this code. The onus is on YOU to determine on which radio channels you may or may not broadcast radio frequency radiation in your country or region.**
+**I accept no responsibility regarding the legality of using this code. The onus is on YOU to determine on which frequencies and at what power levels you may legally broadcast RF signals in your country or region.**
 
 ---
 
 ## Installation
 
-First you must download the Linux kernel source and extract it into `./src/linux`. A helper target is available that tries to do this for you:
+First you must download the Linux kernel source and extract it into `./src/linux`. A helper target is available that can do this for you based on the running kernel, or alternatively with the optional argument `KVER`:
+
 ```sh
-$ make download-src
+$ make download-src [KVER=5.2]
 ```
 
 Next, install the DKMS module so that the patched module source gets re-compiled on each kernel update:
+
 ```sh
 $ sudo make dkms-install
 ```
 
-To completely remove the patched module from your system and restore the original:
+To completely remove the patched module from your system and restore the original module:
+
 ```sh
 sudo make dkms-remove
 ```
 
-If you are using a rolling release distribution, from time to time you may need to remove and re-install the DKMS script for the latest kernel.
+If you are using a rolling release distribution or if you upgrade your major kernel version, you may need to remove and re-install the DKMS script.
+
+Tested and confirmed working on kernels 4.15 and 5.8. Will probably work on anything in between.
