@@ -104,29 +104,27 @@ main() {
 	strip_debug
 }
 
-# if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-#     main "$@"
-# fi
-
-case $1 in
-	prepare_patches)
-		prepare_patches
-	;;
-	download_src)
-		shift
-		download_src "$1"
-	;;
-	patch_src)
-		patch_src
-	;;
-	build)
-		build_modules
-	;;
-	install)
-		strip_debug
-		install
-	;;
-	*)
-		usage
-	;;
-esac
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	case $1 in
+		prepare_patches)
+			prepare_patches
+		;;
+		download_src)
+			shift
+			download_src "$1"
+		;;
+		patch_src)
+			patch_src
+		;;
+		build)
+			build_modules
+		;;
+		install)
+			strip_debug
+			install
+		;;
+		*)
+			usage
+		;;
+	esac
+fi
