@@ -1,7 +1,7 @@
 kernelver=$(shell uname -r)
 
 download-src:
-	./build.sh download_src
+	./build.sh download_src ${KVER}
 
 dkms-build:
 	rsync -a dkms.conf src/linux/ patches dkms_*.sh /usr/src/ath_user_regd-${kernelver}/

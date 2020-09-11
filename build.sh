@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+# set -x
 
 PWD=$(pwd)
 SRC_DIR=${SRC_DIR:-${PWD}/src/linux}
@@ -20,9 +21,9 @@ usage() {
 		  Download OpenWrt patches and modify them for building against
 		  a normal Linux kernel.
 		
-		download_src
+		download_src [KVER]
 		  Try to download a Linux source tarball from kernel.org which
-		  matches the running kernel version.
+		  matches the running kernel version (or KVER if specified).
 		
 		patch_src
 		  Apply the kernel patches.
@@ -37,10 +38,11 @@ usage() {
 }
 
 _get_kernel_version() {
-	KVER=($(uname -r | sed -E 's/([0-9])\.([0-9]+)\.([0-9]+).*/\1 \2 \3/'))
-	KMAJ=${KVER[0]}
-	KMIN=${KVER[1]}
-	KREV=${KVER[2]}
+	KVER=${1:-$(uname -r)}
+	KARR=($(sed -E 's/^([0-9])\.([0-9]+)\.?([0-9]+)?.*/\1 \2 \3/' <<< $KVER))
+	KMAJ=${KARR[0]}
+	KMIN=${KARR[1]}
+	KREV=${KARR[2]}
 }
 
 download_src() {
@@ -48,16 +50,17 @@ download_src() {
 		printf "SRC_DIR set in environment, skipping download\n"
 		return 0
 	fi
-	_get_kernel_version
+	_get_kernel_version "$1"
 	KERNEL_SRC=linux-${KMAJ}.${KMIN}.tar.xz
-	printf "Download %s from kernel.org\n" $KERNEL_SRC
 	test -f src/$KERNEL_SRC || {
+		printf "Download %s from kernel.org\n" $KERNEL_SRC
 		mkdir -p $SRC_DIR
 		wget -q https://cdn.kernel.org/pub/linux/kernel/v${KMAJ}.x/${KERNEL_SRC} -O src/${KERNEL_SRC}
 
 	}
+	printf "Extract kernel source to %s\n" $SRC_DIR
 	tar xf src/${KERNEL_SRC} --strip-components=1 -C $SRC_DIR
-	printf "Kernel source extracted successfully to %s\n" $SRC_DIR
+	printf "Kernel source extracted successfully\n"
 }
 
 prepare_patches() {
@@ -110,7 +113,8 @@ case $1 in
 		prepare_patches
 	;;
 	download_src)
-		download_src
+		shift
+		download_src "$1"
 	;;
 	patch_src)
 		patch_src
