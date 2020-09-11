@@ -96,11 +96,13 @@ install_modules() {
 }
 
 strip_debug() {
+	printf "Stripping debug symbols\n"
 	find $SRC_DIR -name "*.ko" -exec strip -g {} \;
 }
 
 dkms_build() {
 	_get_kernel_version "$1"
+	printf "Add and build DKMS module v%s for running kernel\n" "$MODULE_VERSION"
 	rsync -a src/linux/ patches dkms_*.sh /usr/src/ath_user_regd-${MODULE_VERSION}/
 	sed -E "s/(PACKAGE_VERSION=)/\1${MODULE_VERSION}/" dkms.conf > /usr/src/ath_user_regd-${MODULE_VERSION}/dkms.conf
 	dkms build "ath_user_regd/${MODULE_VERSION}"
@@ -108,11 +110,13 @@ dkms_build() {
 
 dkms_install() {
 	_get_kernel_version "$1"
+	printf "Install DKMS module v%s for running kernel\n" "$MODULE_VERSION"
 	dkms install "ath_user_regd/${MODULE_VERSION}"
 }
 
 dkms_remove() {
 	_get_kernel_version "$1"
+	printf "Remove DKMS module v%s\n" "$MODULE_VERSION"
 	dkms remove "ath_user_regd/${MODULE_VERSION}" || true
 	rm -rf /usr/src/ath_user_regd-${MODULE_VERSION}
 	rm -rf /var/lib/dkms/ath_user_regd/${MODULE_VERSION}
