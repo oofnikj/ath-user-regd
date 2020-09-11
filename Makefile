@@ -1,15 +1,16 @@
-kernelver=$(shell uname -r)
-
 download-src:
 	./build.sh download_src ${KVER}
 
 dkms-build:
-	rsync -a dkms.conf src/linux/ patches dkms_*.sh /usr/src/ath_user_regd-${kernelver}/
-	dkms build ath_user_regd/${kernelver}
+	./build.sh dkms_build ${KVER}
 
 dkms-install: dkms-build
-	dkms install ath_user_regd/${kernelver}
+	./build.sh dkms_install ${KVER}
 
 dkms-remove:
-	dkms remove ath_user_regd/${kernelver} || true
-	rm -rf /usr/src/ath_user_regd-*/
+	./build.sh dkms_remove ${KVER}
+
+help:
+	@./build.sh || true
+
+.PHONY: help

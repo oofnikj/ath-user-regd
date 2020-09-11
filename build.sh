@@ -33,6 +33,9 @@ usage() {
 		
 		install
 		  Install the kernel modules and strip debug symbols.
+
+		dkms_{ build | install | remove }
+			Perform the indicated function through DKMS.
 	EOF
 	exit 1
 }
@@ -43,6 +46,7 @@ _get_kernel_version() {
 	KMAJ=${KARR[0]}
 	KMIN=${KARR[1]}
 	KREV=${KARR[2]}
+	MODULE_VERSION=${KMAJ}.${KMIN}
 }
 
 download_src() {
@@ -52,9 +56,9 @@ download_src() {
 	fi
 	_get_kernel_version "$1"
 	KERNEL_SRC=linux-${KMAJ}.${KMIN}.tar.xz
+	mkdir -p $SRC_DIR
 	test -f src/$KERNEL_SRC || {
 		printf "Download %s from kernel.org\n" $KERNEL_SRC
-		mkdir -p $SRC_DIR
 		wget -q https://cdn.kernel.org/pub/linux/kernel/v${KMAJ}.x/${KERNEL_SRC} -O src/${KERNEL_SRC}
 
 	}
@@ -95,6 +99,25 @@ strip_debug() {
 	find $SRC_DIR -name "*.ko" -exec strip -g {} \;
 }
 
+dkms_build() {
+	_get_kernel_version "$1"
+	rsync -a src/linux/ patches dkms_*.sh /usr/src/ath_user_regd-${MODULE_VERSION}/
+	sed -E "s/(PACKAGE_VERSION=)/\1${MODULE_VERSION}/" dkms.conf > /usr/src/ath_user_regd-${MODULE_VERSION}/dkms.conf
+	dkms build "ath_user_regd/${MODULE_VERSION}"
+}
+
+dkms_install() {
+	_get_kernel_version "$1"
+	dkms install "ath_user_regd/${MODULE_VERSION}"
+}
+
+dkms_remove() {
+	_get_kernel_version "$1"
+	dkms remove "ath_user_regd/${MODULE_VERSION}" || true
+	rm -rf /usr/src/ath_user_regd-${MODULE_VERSION}
+	rm -rf /var/lib/dkms/ath_user_regd/${MODULE_VERSION}
+}
+
 main() {
 	# prepare_patches
 	download_src
@@ -122,6 +145,18 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 		install)
 			strip_debug
 			install
+		;;
+		dkms_build)
+			shift
+			dkms_build "$1"
+		;;
+		dkms_install)
+			shift
+			dkms_install "$1"
+		;;
+		dkms_remove)
+			shift
+			dkms_remove "$1"
 		;;
 		*)
 			usage

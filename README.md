@@ -17,6 +17,7 @@ First you must download the Linux kernel source and extract it into `./src/linux
 ```sh
 $ make download-src [KVER=5.2]
 ```
+**NOTE** that if specifying `KVER`, it must be specified for *all subsequent commands*. It's also not guaranteed to build if `KVER` is more than one or two minor versions away from the running kernel.
 
 Next, install the DKMS module so that the patched module source gets re-compiled on each kernel update:
 
